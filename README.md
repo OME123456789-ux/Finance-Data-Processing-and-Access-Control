@@ -1,74 +1,171 @@
-# Finance Dashboard Backend (Spring Boot)
+# Finance Dashboard Backend - Assignment Submission
 
-JWT authentication + role-based access control (ADMIN, ANALYST, VIEWER) for a finance dashboard.
+Spring Boot backend for a Finance Dashboard system with JWT authentication, role-based access control, financial record management, filtering, and dashboard analytics.
 
-## Requirements
+## Tech Stack
 
-- Java 17+
-- MySQL 8+
-- Maven
+- Java (developed with JDK 25, compiled with Java 17 target compatibility)
+- Spring Boot
+- Spring Web
+- Spring Data JPA (Hibernate)
+- Spring Security
+- MySQL
+- JWT (JJWT)
+- Lombok
+- Bean Validation
 
-## Database
+## Assignment Features Implemented
 
-Create a MySQL database named:
+- Signup and login APIs with JWT token generation
+- BCrypt password encryption
+- Stateless JWT authentication filter
+- Role-based access control (`ADMIN`, `ANALYST`, `VIEWER`)
+- Financial records CRUD APIs
+- Record filtering by `date`, `category`, and `type`
+- Pagination support for listing records
+- Dashboard APIs:
+  - Total income
+  - Total expenses
+  - Net balance
+  - Category-wise totals
+  - Monthly summary
+- Global exception handling with proper HTTP status codes
+- Layered architecture: `controller`, `service`, `repository`, `entity`, `dto`, `security`, `exception`
 
-`finance_dashboard`
+## Data Access Model
 
-The app uses Hibernate to create/update tables (`spring.jpa.hibernate.ddl-auto=update`).
+This project is configured in **shared data mode** as requested:
 
-## Configuration
+- All roles access the same financial dataset.
+- Data is **not** filtered by `user_id` during records listing/dashboard analytics.
+- Role restrictions control what actions each role can perform.
 
-Update environment variables (or edit `application.properties`) before running:
+## Role Permissions
 
-- `DB_URL` (default: `jdbc:mysql://localhost:3306/finance_dashboard?...`)
-- `DB_USERNAME` (default: `root`)
-- `DB_PASSWORD` (default: `password`)
-- `JWT_SECRET` (required for production; default provided for dev)
+- `ADMIN`
+  - `POST /records`
+  - `GET /records`
+  - `PUT /records/{id}`
+  - `DELETE /records/{id}`
+  - `GET /dashboard/totals`
+  - `GET /dashboard/categories`
+  - `GET /dashboard/monthly`
 
-## Run
+- `ANALYST`
+  - `GET /records`
+  - `GET /dashboard/totals`
+  - `GET /dashboard/categories`
+  - `GET /dashboard/monthly`
 
-From the project root:
+- `VIEWER`
+  - `GET /records`
+  - Cannot create/update/delete records
+  - Cannot access dashboard analytics endpoints in current role policy
 
-`mvn spring-boot:run`
+## Database Tables
 
-Swagger UI:
+### Required
+1. `users`
+   - `id`, `name`, `email`, `password`, `role`, `status`
+2. `financial_records`
+   - `id`, `amount`, `type`, `category`, `date`, `notes`, `user_id` (optional in shared mode)
 
-- `http://localhost:8080/swagger-ui.html`
+## API Endpoints
 
-OpenAPI docs:
+### Public
+- `POST /auth/signup`
+- `POST /auth/login`
 
-- `http://localhost:8080/v3/api-docs`
-
-## Role permissions (enforced with `@PreAuthorize`)
-
-- `ADMIN`: can create/update/delete financial records; can access all dashboard endpoints.
-- `ANALYST`: can read records + access dashboard totals, category totals, and monthly summary.
-- `VIEWER`: can read records + dashboard totals only.
-
-Note: all record/dashboard queries are scoped to the authenticated user (you only see your own `FinancialRecord`s).
-
-## Endpoints
-
-Auth:
-- `POST /auth/signup` (public) -> creates a `VIEWER` user
-- `POST /auth/login` (public) -> returns a JWT token
-
-Financial records (scoped to your user):
-- `POST /records` (ADMIN only)
-- `GET /records` (all roles) with optional filters: `date`, `category`, `type` + pagination (`page`, `size`)
-- `PUT /records/{id}` (ADMIN only)
-- `DELETE /records/{id}` (ADMIN only)
-
-Dashboard:
-- `GET /dashboard/totals` (all roles)
+### Protected
+- `POST /records` (ADMIN)
+- `GET /records` (ADMIN/ANALYST/VIEWER)
+- `PUT /records/{id}` (ADMIN)
+- `DELETE /records/{id}` (ADMIN)
+- `GET /dashboard/totals` (ADMIN/ANALYST)
 - `GET /dashboard/categories` (ADMIN/ANALYST)
 - `GET /dashboard/monthly` (ADMIN/ANALYST)
 
-## Postman
+## Request Samples
 
-A ready-to-use Postman collection is included:
+### Signup
+`POST /auth/signup`
+```json
+{
+  "name": "Admin User",
+  "email": "admin@example.com",
+  "password": "Admin@123",
+  "role": "ADMIN"
+}
+```
+
+### Login
+`POST /auth/login`
+```json
+{
+  "email": "admin@example.com",
+  "password": "Admin@123"
+}
+```
+
+### Create Financial Record (ADMIN)
+`POST /records`
+```json
+{
+  "amount": 2500.00,
+  "type": "EXPENSE",
+  "category": "Food",
+  "date": "2026-04-02",
+  "notes": "Lunch"
+}
+```
+
+Use header for protected APIs:
+
+`Authorization: Bearer <JWT_TOKEN>`
+
+## Setup and Run
+
+## Prerequisites
+- JDK 25 (local development)
+- Maven
+- MySQL 8+
+
+### Java Compatibility Note
+- Development runtime used: `JDK 25`
+- Project build target: `Java 17` (configured in `pom.xml`)
+- This keeps the assignment project stable and compatible across environments.
+
+### 1) Create Database
+Create MySQL database:
+
+`finance_dashboard`
+
+### 2) Configure `application.properties`
+Set values (or environment variables):
+
+- `spring.datasource.url`
+- `spring.datasource.username`
+- `spring.datasource.password`
+- `app.security.jwt.secret`
+- `app.security.jwt.expiration-ms`
+
+### 3) Run Application
+From project root:
+
+`mvn spring-boot:run`
+
+## API Documentation
+
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+
+## Postman Collection
 
 `docs/postman/finance-dashboard.postman_collection.json`
 
-Use `Authorization: Bearer <token>` for all requests except `/auth/signup` and `/auth/login`.
+## Notes
+
+- JWT authentication is stateless (`SessionCreationPolicy.STATELESS`).
+- CSRF is disabled for API usage.
+- Role checks are enforced using `@PreAuthorize` with consistent `ROLE_` authority mapping.
 
