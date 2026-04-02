@@ -1,0 +1,124 @@
+{
+  "info": {
+    "name": "Finance Dashboard API",
+    "_postman_id": "d5a2a0c6-6f6f-4b7f-8d6a-0c0b1b5c2c11",
+    "description": "JWT auth + RBAC finance dashboard APIs"
+  },
+  "item": [
+    {
+      "name": "Signup (creates VIEWER)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{baseUrl}}/auth/signup", "host": ["{{baseUrl}}"], "path": ["auth", "signup"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"User One\",\n  \"email\": \"user1@example.com\",\n  \"password\": \"User1Pass123!\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Login (gets token)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"user1@example.com\",\n  \"password\": \"User1Pass123!\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Create Record (ADMIN only)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{baseUrl}}/records", "host": ["{{baseUrl}}"], "path": ["records"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 2500.00,\n  \"type\": \"INCOME\",\n  \"category\": \"Salary\",\n  \"date\": \"2026-04-01\",\n  \"notes\": \"Monthly salary\"\n}"
+        }
+      }
+    },
+    {
+      "name": "List Records (all roles)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/records?page=0&size=20&sort=date,desc", "host": ["{{baseUrl}}"], "path": ["records"] }
+      }
+    },
+    {
+      "name": "Update Record (ADMIN only)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{baseUrl}}/records/{{recordId}}", "host": ["{{baseUrl}}"], "path": ["records", "{{recordId}}"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 2600.00,\n  \"type\": \"INCOME\",\n  \"category\": \"Salary\",\n  \"date\": \"2026-04-01\",\n  \"notes\": \"Adjusted amount\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Delete Record (ADMIN only)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/records/{{recordId}}", "host": ["{{baseUrl}}"], "path": ["records", "{{recordId}}"] }
+      }
+    },
+    {
+      "name": "Dashboard Totals (all roles)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/dashboard/totals", "host": ["{{baseUrl}}"], "path": ["dashboard", "totals"] }
+      }
+    },
+    {
+      "name": "Dashboard Category Totals (ADMIN/ANALYST)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/dashboard/categories", "host": ["{{baseUrl}}"], "path": ["dashboard", "categories"] }
+      }
+    },
+    {
+      "name": "Dashboard Monthly Summary (ADMIN/ANALYST)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/dashboard/monthly", "host": ["{{baseUrl}}"], "path": ["dashboard", "monthly"] }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "token", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "recordId", "value": "" }
+  ]
+}
+
